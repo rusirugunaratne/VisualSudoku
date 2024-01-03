@@ -4,6 +4,7 @@ const API_URL = 'http://localhost:8000/'
 
 export const ENDPOINTS = {
     readBoard: "read_board",
+    solveBoard: 'solve_board'
 };
 
 export const createAPIEndpoint = (endpoint) => {

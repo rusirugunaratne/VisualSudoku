@@ -18,6 +18,7 @@ export function MainScreen() {
   const [boardType, setBoardType] = React.useState("9x9")
   const [boardElements, setBoardElements] = useState([])
   const [loading, setLoading] = useState(false)
+  const [solvedImage, setSolvedImage] = useState(null)
 
   const handleBoardTypeChange = (event, newBoard) => {
     setBoardType(newBoard)
@@ -29,13 +30,28 @@ export function MainScreen() {
 
   useEffect(() => {}, [file, imageFileG, loading, boardElements])
 
+  function objectToFormData(obj) {
+    const formData = new FormData()
+
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        formData.append(key, obj[key].toString())
+      }
+    }
+
+    return formData
+  }
+
   const predict = useCallback(
     async (imageFile) => {
-      console.log("predict called")
+      console.log("board new inside", boardType)
       setLoading(true)
       const formData = new FormData()
       formData.append("file", imageFile)
-      formData.append("board_size", boardType === "9x9" ? 9 : 16)
+      // formData.append("board_size", boardType === "9x9" ? 9 : 16)
+
+      formData.append("board", { board_size: boardType === "9x9" ? 9 : 16 })
+
       createAPIEndpoint(ENDPOINTS.readBoard)
         .post(formData)
         .then((r) => {
@@ -45,8 +61,34 @@ export function MainScreen() {
         })
         .catch((err) => console.log(err))
     },
-    [file]
+    [file, boardType]
   )
+
+  const solve = () => {
+    const formData = new FormData()
+    const reader = new FileReader()
+    const image = imageFileG.imageFile
+    reader.readAsDataURL(image)
+    formData.append("file", image)
+    formData.append("board_size", boardType === "9x9" ? 9 : 16)
+
+    // Send board_values as part of the request body
+    formData.append(
+      "board_values",
+      JSON.stringify(
+        boardElements.map((row) => row.map((val) => parseInt(val)))
+      )
+    )
+
+    createAPIEndpoint(ENDPOINTS.solveBoard)
+      .post(formData)
+      .then((r) => {
+        setSolvedImage(r.data.result_image)
+      })
+      .catch((err) => console.log(err))
+  }
+
+  console.log("board new", boardType)
 
   const handleInputImage = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -94,10 +136,23 @@ export function MainScreen() {
           )}
 
           {boardType && boardElements.length !== 0 && (
-            <SudokuBoard
-              boardSize={boardType === "9x9" ? 9 : 16}
-              elements={boardElements}
-            />
+            <>
+              <SudokuBoard
+                boardSize={boardType === "9x9" ? 9 : 16}
+                elements={boardElements}
+                imageFileG={imageFileG}
+              />
+              <Button variant='contained' onClick={solve} sx={{ marginTop: 2 }}>
+                Solve
+              </Button>
+              {solvedImage && (
+                <Avatar
+                  sx={{ width: 250, height: 250, marginTop: 2 }}
+                  variant='rounded'
+                  src={`data:image/png;base64,${solvedImage}`}
+                />
+              )}
+            </>
           )}
         </Stack>
       </Stack>
