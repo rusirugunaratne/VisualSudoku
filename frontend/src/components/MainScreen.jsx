@@ -45,22 +45,34 @@ export function MainScreen() {
 
   const predict = useCallback(
     async (imageFile) => {
-      console.log("board new inside", boardType)
       setLoading(true)
       const formData = new FormData()
       formData.append("file", imageFile)
-      // formData.append("board_size", boardType === "9x9" ? 9 : 16)
-
-      formData.append("board", { board_size: boardType === "9x9" ? 9 : 16 })
 
       createAPIEndpoint(ENDPOINTS.readBoard)
         .post(formData)
         .then((r) => {
+          // Determine the size of the Sudoku board based on the result
+          const numRows = r.data.result.length
+          const numColumns = r.data.result[0].length
+
+          let newBoardType = "9x9" // Default to "9x9"
+          if (numRows === 16 && numColumns === 16) {
+            newBoardType = "16x16"
+          }
+
+          // Update the boardType state based on the size of the Sudoku board
+          setBoardType(newBoardType)
+
+          // Update the boardElements state
           setBoardElements(r.data.result)
-          console.log("data", r.data.result)
+
           setLoading(false)
         })
-        .catch((err) => console.log(err))
+        .catch((err) => {
+          console.log(err)
+          setLoading(false)
+        })
     },
     [file, boardType]
   )

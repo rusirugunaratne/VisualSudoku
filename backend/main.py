@@ -1,6 +1,6 @@
 import base64
 
-from app_utils import process_image
+from app_utils import process_image, find_size
 from fastapi import FastAPI, File, UploadFile, Form
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +12,7 @@ from typing import Optional, List
 from fastapi import HTTPException
 from draw_solution import find_board, displayNumbers, get_InvPerspective
 from solver import solve
+import copy
 
 app = FastAPI()
 
@@ -41,6 +42,7 @@ async def read_file_as_image(data) -> np.ndarray:
     image = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
     global IMAGE
     IMAGE = image
+
     return image
 
 
@@ -49,17 +51,17 @@ class ImageUpload(BaseModel):
 
 
 @app.post('/api/read_board')
-async def read_image(file: UploadFile, board_size: int = 9):
+async def read_image(file: UploadFile):
     contents = await file.read()
     image = await read_file_as_image(contents)
-
-    print('board_size', board_size)
-    global BOARD_SIZE
-    BOARD_SIZE = board_size
 
     height_img = 576
     width_img = 576
 
+    board_size = find_size(copy.deepcopy(image))
+    print('board_size', board_size)
+    global BOARD_SIZE
+    BOARD_SIZE = board_size
 
     result_board = process_image(image, height_img, width_img, board_size)
     return {"result": result_board.tolist()}
@@ -74,11 +76,6 @@ async def solve_board(board_values: List[List[int]]):
     print('rec', board_values)
     bvals = board_values
     print('bvals', BOARD_SIZE)
-
-    # You don't need to convert the JSON string to a list since FastAPI handles it for you
-
-    # contents = await file.read()
-    # image = await read_file_as_image(contents)
 
     height_img = 576
     width_img = 576

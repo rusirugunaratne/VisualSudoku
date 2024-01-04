@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 from digit_recognizer import digit_recognizer
+import copy
+import size_detection
 
 def predict_numbers(boxes, model):
     numbers = []
@@ -79,6 +81,34 @@ def print_sudoku_board(sudoku_board, grid_size):
             value = sudoku_board[i * grid_size + j]
 
         print()
+
+
+def find_size(frame):
+    # Make a copy of the original frame
+    original_frame = copy.deepcopy(frame)
+    # Apply image processing to detect edges in the frame
+    edges = size_detection.image_processing(frame)
+
+    # Find contours in the edged image
+    contours = size_detection.find_contours(edges)
+
+    if contours:
+        print('contours found')
+        # Sort contours by area and find the largest contour (presumed Sudoku puzzle)
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:1]
+
+        # Approximate the contour to a polygon
+        approx = cv2.approxPolyDP(contours[0], 0.02 * cv2.arcLength(contours[0], True), True)
+
+        # Make a copy of the original frame
+        original_frame = copy.deepcopy(frame)
+
+        # Draw the contour on the original frame
+        size_detection.draw_contour(frame, approx, size_detection.color_green)  # TO FIND SIZE
+        size_detection.draw_contour(original_frame, approx, size_detection.color_black)  # TO CROP CELLS
+
+        # If a Sudoku puzzle is detected (assuming 4 corners), proceed with further processing
+        return size_detection.sudoku_puzzle_verification(frame, original_frame, approx)
 
 
 def process_image(img, height_img, width_img, board_size):

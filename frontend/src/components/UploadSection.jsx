@@ -98,7 +98,7 @@ function UploadSection({
       alignItems='center'
       spacing={2}
     >
-      <ToggleButtonGroup
+      {/* <ToggleButtonGroup
         color='primary'
         value={boardType}
         exclusive
@@ -107,7 +107,7 @@ function UploadSection({
       >
         <ToggleButton value='9x9'>9x9</ToggleButton>
         <ToggleButton value='16x16'>16x16</ToggleButton>
-      </ToggleButtonGroup>
+      </ToggleButtonGroup> */}
       <Avatar
         sx={{ width: 200, height: 200 }}
         variant='rounded'
