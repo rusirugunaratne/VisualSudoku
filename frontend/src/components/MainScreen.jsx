@@ -66,22 +66,17 @@ export function MainScreen() {
 
   const solve = () => {
     const formData = new FormData()
-    const reader = new FileReader()
-    const image = imageFileG.imageFile
-    reader.readAsDataURL(image)
-    formData.append("file", image)
-    formData.append("board_size", boardType === "9x9" ? 9 : 16)
 
-    // Send board_values as part of the request body
-    formData.append(
-      "board_values",
-      JSON.stringify(
-        boardElements.map((row) => row.map((val) => parseInt(val)))
-      )
+    // Convert boardElements to a 2D array of integers
+    const boardValues = boardElements.map((row) =>
+      row.map((val) => parseInt(val))
     )
 
+    // Append board_values as a JSON string to the FormData
+    formData.append("board_values", JSON.stringify(boardValues))
+
     createAPIEndpoint(ENDPOINTS.solveBoard)
-      .post(formData)
+      .post(boardValues)
       .then((r) => {
         setSolvedImage(r.data.result_image)
       })
