@@ -19,6 +19,7 @@ export function MainScreen() {
   const [boardElements, setBoardElements] = useState([])
   const [loading, setLoading] = useState(false)
   const [solvedImage, setSolvedImage] = useState(null)
+  const [isSolved, setIsSolved] = useState(false)
 
   const handleBoardTypeChange = (event, newBoard) => {
     setBoardType(newBoard)
@@ -79,11 +80,14 @@ export function MainScreen() {
       .post(boardValues)
       .then((r) => {
         setSolvedImage(r.data.result_image)
+        setImageFileG({ image: `data:image/png;base64,${r.data.result_image}` })
+        setBoardElements([...r.data.solved])
+        setIsSolved(true)
       })
       .catch((err) => console.log(err))
   }
 
-  console.log("board new", boardType)
+  console.log("board new", boardElements)
 
   const handleInputImage = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -136,16 +140,16 @@ export function MainScreen() {
                 boardSize={boardType === "9x9" ? 9 : 16}
                 elements={boardElements}
                 imageFileG={imageFileG}
+                isSolved={isSolved}
               />
-              <Button variant='contained' onClick={solve} sx={{ marginTop: 2 }}>
-                Solve
-              </Button>
-              {solvedImage && (
-                <Avatar
-                  sx={{ width: 250, height: 250, marginTop: 2 }}
-                  variant='rounded'
-                  src={`data:image/png;base64,${solvedImage}`}
-                />
+              {!isSolved && (
+                <Button
+                  variant='contained'
+                  onClick={solve}
+                  sx={{ marginTop: 2 }}
+                >
+                  Solve
+                </Button>
               )}
             </>
           )}

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { TextField, Stack, Button, Typography, Avatar } from "@mui/material"
 
-const SudokuBoard = ({ boardSize, elements, imageFileG }) => {
+const SudokuBoard = ({ boardSize, elements, imageFileG, isSolved }) => {
   const [board, setBoard] = useState(
     elements.length
       ? elements
@@ -42,17 +42,19 @@ const SudokuBoard = ({ boardSize, elements, imageFileG }) => {
 
   return (
     <div className='sudoku-board'>
-      <Typography variant='h4'>Edit the detected values</Typography>
-      <Button variant='contained' onClick={saveToTxt} sx={{ marginBottom: 1 }}>
-        Save to TXT
-      </Button>
-      <Button
-        variant='contained'
-        onClick={solveSudoku}
-        sx={{ marginBottom: 1, marginLeft: 2 }}
-      >
-        Solve
-      </Button>
+      {!isSolved && (
+        <Typography variant='h4'>Edit the detected values</Typography>
+      )}
+      {isSolved && <Typography variant='h4'>Solution</Typography>}
+      {!isSolved && (
+        <Button
+          variant='contained'
+          onClick={saveToTxt}
+          sx={{ marginBottom: 1 }}
+        >
+          Save to TXT
+        </Button>
+      )}
 
       <Stack
         direction='row'
@@ -65,34 +67,36 @@ const SudokuBoard = ({ boardSize, elements, imageFileG }) => {
           variant='rounded'
           src={imageFileG.image}
         />
-        <Stack
-          direction='column'
-          justifyContent='center'
-          alignItems='center'
-          spacing={2}
-        >
-          {board.map((row, i) => (
-            <Stack
-              key={i}
-              direction='row'
-              spacing={1}
-              justifyContent='center'
-              marginBottom={1} // Adjust the margin as needed
-            >
-              {row.map((value, j) => (
-                <TextField
-                  key={`${i}-${j}`}
-                  type='text'
-                  value={value}
-                  onChange={(e) => handleInputChange(i, j, e)}
-                  variant='outlined'
-                  size='small'
-                  sx={getCellStyle()}
-                />
-              ))}
-            </Stack>
-          ))}
-        </Stack>
+        {!isSolved && (
+          <Stack
+            direction='column'
+            justifyContent='center'
+            alignItems='center'
+            spacing={2}
+          >
+            {board.map((row, i) => (
+              <Stack
+                key={i}
+                direction='row'
+                spacing={1}
+                justifyContent='center'
+                marginBottom={1} // Adjust the margin as needed
+              >
+                {row.map((value, j) => (
+                  <TextField
+                    key={`${i}-${j}`}
+                    type='text'
+                    value={value}
+                    onChange={(e) => handleInputChange(i, j, e)}
+                    variant='outlined'
+                    size='small'
+                    sx={getCellStyle()}
+                  />
+                ))}
+              </Stack>
+            ))}
+          </Stack>
+        )}
       </Stack>
     </div>
   )

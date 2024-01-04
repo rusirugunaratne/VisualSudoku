@@ -1,3 +1,5 @@
+import base64
+
 from app_utils import process_image
 from fastapi import FastAPI, File, UploadFile, Form
 import uvicorn
@@ -8,7 +10,8 @@ import json
 from pydantic import BaseModel
 from typing import Optional, List
 from fastapi import HTTPException
-
+from draw_solution import find_board, displayNumbers, get_InvPerspective
+from solver import solve
 
 app = FastAPI()
 
@@ -57,6 +60,7 @@ async def read_image(file: UploadFile, board_size: int = 9):
     height_img = 576
     width_img = 576
 
+
     result_board = process_image(image, height_img, width_img, board_size)
     return {"result": result_board.tolist()}
 
@@ -79,12 +83,30 @@ async def solve_board(board_values: List[List[int]]):
     height_img = 576
     width_img = 576
 
-    result_image = process_image(IMAGE, height_img, width_img, BOARD_SIZE)
-    # Add your logic here to solve the board using the provided values
+    solved_board_nums = solve(board_values)
+    sbnums = np.array(solved_board_nums)
+    flat_solved_board_nums = sbnums.flatten()
+    print(flat_solved_board_nums)
 
-    # You can return the result image as bytes
-    _, result_image_bytes = cv2.imencode(".png", result_image)
-    return {"result_image": result_image_bytes.tobytes()}
+    board, location = find_board(IMAGE)
+
+    mask = np.zeros_like(board)
+    solved_board_mask = displayNumbers(mask, flat_solved_board_nums)
+    # Rotate the image 90 degrees counter-clockwise
+    solved_board_mask = cv2.rotate(solved_board_mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    # cv2.imshow("Solved Mask", solved_board_mask)
+
+    # Get inverse perspective
+    inv = get_InvPerspective(IMAGE, solved_board_mask, location)
+
+    combined = cv2.addWeighted(IMAGE, 0.5, inv, 1, 0)
+
+    combined = cv2.addWeighted(IMAGE, 0.5, inv, 1, 0)
+
+    _, result_image_bytes = cv2.imencode(".png", combined)
+    result_image_base64 = base64.b64encode(result_image_bytes).decode('utf-8')
+
+    return {"result_image": result_image_base64, "solved": solved_board_nums}
 
 
 if __name__ == "__main__":
