@@ -14,15 +14,24 @@ const SudokuBoard = ({ boardSize, elements, imageFileG, isSolved }) => {
     setBoard(updatedBoard)
   }
 
-  const getCellStyle = () => {
-    const cellSize = boardSize === 9 ? "40px" : "30px" // Adjust as needed
-    const margin = boardSize === 9 ? "10px" : "5px" // Adjust as needed
-
-    return {
+  const getCellStyle = (value) => {
+    const cellSize = boardSize === 9 ? "40px" : "30px"
+    const margin = boardSize === 9 ? "10px" : "5px"
+    const baseStyle = {
       width: "60px",
       height: cellSize,
       margin: `0 ${margin} ${margin} 0`,
     }
+
+    // Add conditional style for values greater than 16
+    if (value > 16) {
+      return {
+        ...baseStyle,
+        background: "red",
+      }
+    }
+
+    return baseStyle
   }
 
   const saveToTxt = () => {
@@ -103,7 +112,7 @@ const SudokuBoard = ({ boardSize, elements, imageFileG, isSolved }) => {
                     onChange={(e) => handleInputChange(i, j, e)}
                     variant='outlined'
                     size='small'
-                    sx={getCellStyle()}
+                    sx={getCellStyle(value)}
                   />
                 ))}
               </Stack>

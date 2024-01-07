@@ -96,4 +96,3 @@ def get_InvPerspective(img, masked_num, location, height = 576, width = 576):
     img.shape[0]))
 
     return result
-
