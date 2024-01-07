@@ -45,7 +45,20 @@ const SudokuBoard = ({ boardSize, elements, imageFileG, isSolved }) => {
       {!isSolved && (
         <Typography variant='h4'>Edit the detected values</Typography>
       )}
+
       {isSolved && <Typography variant='h4'>Solution</Typography>}
+      {isSolved && (
+        <>
+          <TextField
+            multiline
+            rows={boardSize}
+            fullWidth
+            value={elements.map((row) => row.join(" ")).join("\n")}
+            variant='outlined'
+            sx={{ marginBottom: 2 }}
+          />
+        </>
+      )}
       {!isSolved && (
         <Button
           variant='contained'

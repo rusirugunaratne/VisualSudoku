@@ -50,8 +50,8 @@ class ImageUpload(BaseModel):
     board_size: int = Form(...)
 
 
-@app.post('/api/read_board')
-async def read_image(file: UploadFile):
+@app.post('/api/get_size')
+async def get_size(file: UploadFile):
     contents = await file.read()
     image = await read_file_as_image(contents)
 
@@ -63,10 +63,23 @@ async def read_image(file: UploadFile):
     global BOARD_SIZE
     BOARD_SIZE = board_size
 
-    result_board = process_image(image, height_img, width_img, board_size)
+    return {"result": board_size}
+
+
+class BoardSize(BaseModel):
+    board_size: int
+
+@app.post('/api/read_board')
+async def read_image(board_size: BoardSize):
+
+    global BOARD_SIZE
+    BOARD_SIZE = board_size.board_size
+
+    height_img = 576
+    width_img = 576
+
+    result_board = process_image(IMAGE, height_img, width_img, board_size.board_size)
     return {"result": result_board.tolist()}
-
-
 
 
 @app.post('/api/solve_board')
@@ -81,6 +94,8 @@ async def solve_board(board_values: List[List[int]]):
     width_img = 576
 
     solved_board_nums = solve(board_values)
+    print('Solved Board')
+    print(np.matrix(solved_board_nums))
     sbnums = np.array(solved_board_nums)
     flat_solved_board_nums = sbnums.flatten()
     print(flat_solved_board_nums)
@@ -88,15 +103,13 @@ async def solve_board(board_values: List[List[int]]):
     board, location = find_board(IMAGE)
 
     mask = np.zeros_like(board)
-    solved_board_mask = displayNumbers(mask, flat_solved_board_nums)
+    solved_board_mask = displayNumbers(mask, flat_solved_board_nums, BOARD_SIZE)
     # Rotate the image 90 degrees counter-clockwise
     solved_board_mask = cv2.rotate(solved_board_mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
     # cv2.imshow("Solved Mask", solved_board_mask)
 
     # Get inverse perspective
     inv = get_InvPerspective(IMAGE, solved_board_mask, location)
-
-    combined = cv2.addWeighted(IMAGE, 0.5, inv, 1, 0)
 
     combined = cv2.addWeighted(IMAGE, 0.5, inv, 1, 0)
 

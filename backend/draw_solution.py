@@ -46,13 +46,14 @@ def get_perspective(img, location, height = 576, width = 576):
 
 
 # split the board into 81 individual images
-def split_boxes(board):
+# split the board into 81 individual images
+def split_boxes(board, board_size):
     """Takes a sudoku board and split it into 81 cells.
     each cell contains an element of that board either given or an empty cell."""
-    rows = np.vsplit(board,9)
+    rows = np.vsplit(board,board_size)
     boxes = []
     for r in rows:
-        cols = np.hsplit(r,9)
+        cols = np.hsplit(r,board_size)
         for box in cols:
             box = cv2.resize(box, (576, 576))/255.0
             cv2.imshow("Splitted block", box)
@@ -61,17 +62,19 @@ def split_boxes(board):
     return boxes
 
 
-def displayNumbers(img, numbers, color=(0, 255, 0), font=cv2.FONT_HERSHEY_COMPLEX, fontScale=1.5, thickness=2):
-    W = int(img.shape[1]/9)  # Width of each cell
-    H = int(img.shape[0]/9)  # Height of each cell
+def displayNumbers(img, numbers, board_size, color=(0, 255, 0), font=cv2.FONT_HERSHEY_COMPLEX, fontScale=1.5, thickness=2):
+    W = int(img.shape[1]/board_size)  # Width of each cell
+    H = int(img.shape[0]/board_size)  # Height of each cell
 
-    for i in range(9):
-        for j in range(9):
-            num = numbers[(j*9)+i]
+    for i in range(board_size):
+        for j in range(board_size):
+            num = numbers[(j*board_size)+i]
             if num != 0:
                 text = str(num)
 
                 # Get the text size
+                if(board_size == 16):
+                    fontScale = 0.75
                 textSize = cv2.getTextSize(text, font, fontScale, thickness)[0]
 
                 # Calculate the text position so that it's centered
@@ -94,42 +97,3 @@ def get_InvPerspective(img, masked_num, location, height = 576, width = 576):
 
     return result
 
-
-# board, location = find_board(img)
-# cv2.imshow("Board", board)
-#
-# height_img = 576
-# width_img = 576
-# board_size = 9
-#
-# original_board, img = process_image(path_image, height_img, width_img, board_size)
-# print(original_board)
-#
-# solved_board_nums = solve(original_board)
-#
-# # get only solved numbers for the solved board
-# flat_solved_board_nums = solved_board_nums.flatten()
-# print(flat_solved_board_nums)
-#
-# # Create a binary mask - 1 where there is a solved number, 0 otherwise
-# # binArr = (flat_solved_board_nums > 0).astype(int)
-#
-# # Use the binary mask to get only the solved numbers
-# # flat_solved_board_nums = flat_solved_board_nums * binArr
-#
-# # create a mask
-# mask = np.zeros_like(board)
-# solved_board_mask = displayNumbers(mask, flat_solved_board_nums)
-# # Rotate the image 90 degrees counter-clockwise
-# solved_board_mask = cv2.rotate(solved_board_mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
-# # cv2.imshow("Solved Mask", solved_board_mask)
-#
-# # Get inverse perspective
-# inv = get_InvPerspective(img, solved_board_mask, location)
-#
-# combined = cv2.addWeighted(img, 0.5, inv, 1, 0)
-# cv2.imshow("Final result", combined)
-#
-# # cv2.imshow("Board", board)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()

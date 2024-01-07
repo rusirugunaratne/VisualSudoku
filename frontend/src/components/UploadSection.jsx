@@ -108,13 +108,7 @@ function UploadSection({
         <ToggleButton value='9x9'>9x9</ToggleButton>
         <ToggleButton value='16x16'>16x16</ToggleButton>
       </ToggleButtonGroup> */}
-      <Avatar
-        sx={{ width: 200, height: 200 }}
-        variant='rounded'
-        src={imageFileG.image}
-      >
-        <GridViewIcon />
-      </Avatar>
+
       <Stack direction={"row"} spacing={2}>
         <ToggleButtonGroup
           value={captureMode}

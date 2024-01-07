@@ -11,11 +11,12 @@ import { ENDPOINTS, createAPIEndpoint } from "../api/api"
 import UploadSection from "./UploadSection"
 import SudokuBoard from "./SudokuBoard"
 import logo from "../assets/sudokuLogo.png"
+import SetBoardSize from "./SetBoardSize"
 
 export function MainScreen() {
   const [file, setFile] = useState({})
   const [imageFileG, setImageFileG] = useState({})
-  const [boardType, setBoardType] = React.useState("9x9")
+  const [boardType, setBoardType] = React.useState("")
   const [boardElements, setBoardElements] = useState([])
   const [loading, setLoading] = useState(false)
   const [solvedImage, setSolvedImage] = useState(null)
@@ -44,13 +45,13 @@ export function MainScreen() {
   }
 
   const predict = useCallback(
-    async (imageFile) => {
+    async (boardSize) => {
       setLoading(true)
       const formData = new FormData()
-      formData.append("file", imageFile)
+      formData.append("board_size", boardSize)
 
       createAPIEndpoint(ENDPOINTS.readBoard)
-        .post(formData)
+        .post({ board_size: boardSize })
         .then((r) => {
           // Determine the size of the Sudoku board based on the result
           const numRows = r.data.result.length
@@ -101,6 +102,37 @@ export function MainScreen() {
 
   console.log("board new", boardElements)
 
+  const handleGetBoardSize = useCallback(
+    async (imageFile) => {
+      setLoading(true)
+      const formData = new FormData()
+      formData.append("file", imageFile)
+
+      createAPIEndpoint(ENDPOINTS.getSize)
+        .post(formData)
+        .then((r) => {
+          // Determine the size of the Sudoku board based on the result
+          const numRows = r.data.result
+          const numColumns = r.data.result
+
+          let newBoardType = "9x9" // Default to "9x9"
+          if (numRows === 16 && numColumns === 16) {
+            newBoardType = "16x16"
+          }
+
+          // Update the boardType state based on the size of the Sudoku board
+          setBoardType(newBoardType)
+
+          setLoading(false)
+        })
+        .catch((err) => {
+          console.log(err)
+          setLoading(false)
+        })
+    },
+    [file, boardType]
+  )
+
   const handleInputImage = (e) => {
     if (e.target.files && e.target.files[0]) {
       let imageFile = e.target.files[0]
@@ -113,7 +145,7 @@ export function MainScreen() {
         formValues = { file: x.target?.result }
       }
       reader.readAsDataURL(imageFile)
-      predict(imageFile)
+      handleGetBoardSize(imageFile)
     }
   }
 
@@ -128,22 +160,28 @@ export function MainScreen() {
         <img src={logo} width={400} alt='' srcset='' />
 
         <Stack direction={"row"} spacing={2}>
-          {loading === false && boardElements.length === 0 && (
-            <UploadSection
-              imageFileG={imageFileG}
-              handleInputImage={handleInputImage}
-              setImageFileG={setImageFileG}
-              boardType={boardType}
-              handleBoardTypeChange={handleBoardTypeChange}
-              predict={predict}
-              setFile={setFile}
-            />
-          )}
+          {loading === false &&
+            boardElements.length === 0 &&
+            boardType === "" && (
+              <UploadSection
+                imageFileG={imageFileG}
+                handleInputImage={handleInputImage}
+                setImageFileG={setImageFileG}
+                boardType={boardType}
+                handleBoardTypeChange={handleBoardTypeChange}
+                predict={handleGetBoardSize}
+                setFile={setFile}
+              />
+            )}
 
           {loading && (
             <Box sx={{ display: "flex" }}>
               <CircularProgress />
             </Box>
+          )}
+
+          {boardType !== "" && boardElements.length === 0 && (
+            <SetBoardSize readBoard={predict} boardType={boardType} />
           )}
 
           {boardType && boardElements.length !== 0 && (
