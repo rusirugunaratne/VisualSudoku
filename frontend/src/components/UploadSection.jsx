@@ -144,9 +144,9 @@ function UploadSection({
       ) : (
         <Webcam
           audio={false}
-          height={200}
+          height={500}
           screenshotFormat='image/jpeg'
-          width={200}
+          width={500}
           videoConstraints={videoConstraints}
           ref={webcamRef}
         >

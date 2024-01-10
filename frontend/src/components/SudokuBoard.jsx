@@ -34,13 +34,25 @@ const SudokuBoard = ({ boardSize, elements, imageFileG, isSolved }) => {
     return baseStyle
   }
 
-  const saveToTxt = () => {
-    const txtContent = board.map((row) => row.join(" ")).join("\n")
-    const blob = new Blob([txtContent], { type: "text/plain" })
-    const link = document.createElement("a")
-    link.href = URL.createObjectURL(blob)
-    link.download = "sudoku_board.txt"
-    link.click()
+  const saveToTxt = async () => {
+    try {
+      const fileHandle = await window.showSaveFilePicker({
+        suggestedName: "sudoku_board.txt",
+        types: [
+          {
+            accept: {
+              "text/plain": [".txt"],
+            },
+          },
+        ],
+      })
+
+      const writable = await fileHandle.createWritable()
+      await writable.write(board.map((row) => row.join(" ")).join("\n"))
+      await writable.close()
+    } catch (error) {
+      console.error("Error saving file:", error)
+    }
   }
 
   const solveSudoku = () => {
@@ -78,6 +90,16 @@ const SudokuBoard = ({ boardSize, elements, imageFileG, isSolved }) => {
         </Button>
       )}
 
+      {!isSolved && (
+        <Button
+          variant='contained'
+          onClick={saveToTxt}
+          sx={{ marginBottom: 1 }}
+        >
+          Upload Solution
+        </Button>
+      )}
+
       <Stack
         direction='row'
         justifyContent='center'
@@ -85,7 +107,7 @@ const SudokuBoard = ({ boardSize, elements, imageFileG, isSolved }) => {
         spacing={2}
       >
         <Avatar
-          sx={{ width: 400, height: 400, marginRight: 2 }}
+          sx={{ width: 400, height: "auto", marginRight: 2 }}
           variant='rounded'
           src={imageFileG.image}
         />

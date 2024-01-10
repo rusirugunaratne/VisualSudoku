@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from fastapi import HTTPException
 from draw_solution import find_board, displayNumbers, get_InvPerspective
+from final_solver import solver
 from solver import solve
 import copy
 
@@ -93,7 +94,16 @@ async def solve_board(board_values: List[List[int]]):
     height_img = 576
     width_img = 576
 
-    solved_board_nums = solve(board_values)
+    # Save board_values to a text file
+    txt_content = "\n".join(" ".join(map(str, row)) for row in board_values)
+    with open("board_values.txt", "w") as txt_file:
+        txt_file.write(txt_content)
+
+    solved_board_nums = []
+    if BOARD_SIZE == 9:
+        solved_board_nums = solver(board_values)
+    else:
+        solved_board_nums = solve(board_values)
     print('Solved Board')
     print(np.matrix(solved_board_nums))
     sbnums = np.array(solved_board_nums)
@@ -105,11 +115,16 @@ async def solve_board(board_values: List[List[int]]):
     mask = np.zeros_like(board)
     solved_board_mask = displayNumbers(mask, flat_solved_board_nums, BOARD_SIZE)
     # Rotate the image 90 degrees counter-clockwise
-    solved_board_mask = cv2.rotate(solved_board_mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    # solved_board_mask = cv2.rotate(solved_board_mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
     # cv2.imshow("Solved Mask", solved_board_mask)
 
     # Get inverse perspective
     inv = get_InvPerspective(IMAGE, solved_board_mask, location)
+
+    # # Display the image using cv2.imshow
+    # cv2.imshow("Combined Image", IMAGE)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     combined = cv2.addWeighted(IMAGE, 0.5, inv, 1, 0)
 
